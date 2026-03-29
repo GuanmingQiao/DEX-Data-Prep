@@ -224,7 +224,7 @@ Verified by cross-referencing official project announcements, on-chain activity 
 - `checks=on_coingecko` megafilter: only show pools with CoinGecko-verified tokens
 - Contract age, locked liquidity, honeypot detection
 
-**OKX implication:** The curated token registry is the trust foundation for the entire product stack. Without it: search surfaces scams, wallets show fake balances, DEX routes to honeypot pools. The "labeling system" in the JD is essentially this registry plus the trust scoring layer on top of it.
+**DEX platform implication:** The curated token registry is the trust foundation for the entire product stack. Without it: search surfaces scams, wallets show fake balances, DEX routes to honeypot pools. The "labeling system" in a typical Infra PM JD is essentially this registry plus the trust scoring layer on top of it.
 
 ---
 

@@ -86,7 +86,7 @@ Requires:
 - Canonical registry to deduplicate (1 ETH on Arbitrum + 0.5 ETH on Base = 1.5 ETH total)
 - Bridge position tracking (assets in transit between chains)
 
-This is one of OKX Wallet's core features and one of the hardest data engineering problems in Web3.
+This is one of the hardest data engineering problems in Web3, and a flagship feature of leading multi-chain wallets.
 
 ---
 
@@ -168,7 +168,7 @@ Limits attacker's window to hold a frontrun position
 
 ## 5. How Data Products Help Prevent Sandwiches
 
-This is the key product angle for the OKX Infra PM role.
+This is the key product angle for the Infra PM role.
 
 ### Data product 1: Slippage recommendation engine
 Instead of requiring users to set slippage manually, compute optimal tolerance per token + trade:
@@ -185,7 +185,7 @@ Index historical MEV events — how often each pool is sandwiched and typical ex
 WETH/USDC ($500M liquidity):  MEV risk LOW  — deep pool, hard to move price
 New meme coin ($50K):         MEV risk HIGH — shallow, frequently sandwiched
 ```
-Surface as a risk label before trade submission. Proprietary OKX signal — CoinGecko doesn't have this.
+Surface as a risk label before trade submission. Proprietary exchange signal — CoinGecko doesn't have this.
 
 ### Data product 3: Real-time price impact calculator
 Show user exactly what they'll receive before submitting:
