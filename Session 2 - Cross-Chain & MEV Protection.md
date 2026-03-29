@@ -22,7 +22,21 @@ User locks 1 ETH in bridge contract on Ethereum
 
 To return: burn wETH on BSC → bridge releases ETH on Ethereum
 ```
-Historical risk: Ronin ($625M), Wormhole ($320M), Nomad ($190M) — all bridge hacks targeting locked assets.
+
+The destination asset is a **synthetic** — an IOU created by the bridge, only redeemable if the source contract still holds the locked collateral. The core invariant: `tokens locked == wrapped tokens in circulation`. If an attacker breaks this (by forging a mint without a corresponding lock), the wrapped token becomes worthless.
+
+**Honeypot risk:** All locked assets accumulate in a single source contract — a high-value target. Historical losses: Ronin ($625M), Wormhole ($320M), Nomad ($190M).
+
+**How the hack works:** The bridge contract accepts a signed attestation from a validator set before minting. Three ways this breaks:
+- **Validator key theft** — attacker steals enough keys to forge a valid signature set (Ronin: 5-of-9 keys compromised)
+- **Signature verification bug** — contract logic flaw allows forged attestation to pass (Wormhole: missing account validation on Solana)
+- **Bad initialisation** — misconfiguration makes all messages pass verification by default (Nomad: trusted root accidentally set to `0x0`)
+
+**Fragmented wrapped assets:** Each bridge that lock-and-mints creates its own wrapped token. `wETH via Ronin ≠ wETH via Wormhole` — they are different contracts. If the issuing bridge is hacked, that specific wrapped token becomes worthless even though native ETH is unaffected.
+
+**Validators are humans, not smart contracts.** The on-chain contract only checks signatures cryptographically. The private keys belong to off-chain operators — companies or individuals who run validator software. The smart contract logic can be flawless and the bridge still gets hacked via key management failures.
+
+**How users establish trust:** audited open-source contracts, multi-sig with credible independent validators, time-locks on admin actions, and immutable contracts. The emerging trustless alternative is ZK light client bridges — destination chain verifies a ZK proof of source chain state, removing the human validator layer entirely.
 
 ### Burn-and-mint (safest for stablecoins)
 Circle's CCTP for USDC: issuer burns on source chain, mints fresh on destination. No locked pool to exploit. Only possible when the token issuer controls minting on all chains.
@@ -32,15 +46,52 @@ Circle's CCTP for USDC: issuer burns on source chain, mints fresh on destination
 User deposits 1 ETH on Ethereum → Hop Protocol
 → Relayer pays 0.999 ETH from Hop's Arbitrum pool (minus fee)
 ```
-Risk: one side of the pool can drain during high demand, causing failed transfers or delays.
+
+The destination asset **already exists natively** on the destination chain — no synthetic is created. The user receives real ETH on Arbitrum, not a bridge-specific wrapper. LPs pre-fund pools on both sides and earn fees for providing this liquidity.
+
+**Key difference from lock-and-mint:**
+
+| | Lock-and-mint | Liquidity pool |
+|---|---|---|
+| Destination asset | Synthetic/wrapped | Native asset |
+| Honeypot risk | Yes — single locked contract | No — liquidity spread across pools |
+| Pool imbalance risk | No | Yes — one side drains under high demand |
+| Speed | Validator confirmation time | Fast — relayer pays from existing pool |
+
+**Pool imbalance:** if everyone bridges ETH from Ethereum → Arbitrum, the Arbitrum pool drains faster than LPs refill it. New bridge requests fail or queue until rebalanced.
 
 ### Cross-chain messaging protocols
-LayerZero, Axelar, Wormhole, Chainlink CCIP — the infrastructure layer bridges build on. Pass arbitrary messages (not just asset transfers) between chains. Trust = validator set attesting that source chain event occurred.
+LayerZero, Axelar, Wormhole, Chainlink CCIP — the **infrastructure layer** that bridges and other cross-chain apps build on. They don't move assets themselves; they deliver arbitrary data between chains.
+
+**What they actually do:**
+```
+Chain A: any event occurs
+→ Validators attest: "this event happened at block N"
+→ Signed message delivered to Chain B contract
+→ Chain B contract receives payload and does whatever you programmed
+```
+
+The payload can be anything: mint a token, release from a pool, update a price oracle, execute a governance vote, trigger a liquidation. Lock-and-mint and liquidity pool bridges are just two specific applications built on top of this transport layer.
+
+**Why this matters — composability:**
+```
+Cross-chain governance:   DAO votes on Ethereum → outcome executed on Polygon
+Cross-chain lending:      collateral on Arbitrum → borrow against it on Ethereum
+Cross-chain NFT:          lock NFT on Ethereum → playable version minted on gaming chain
+```
+
+None of these move assets — they move information. Messaging protocols make this possible without each app building its own validator set.
+
+**The trust problem doesn't go away.** Messaging protocols still rely on a validator/relayer set. Every application built on LayerZero inherits LayerZero's security assumptions. A compromised messaging layer puts all applications on top of it at risk simultaneously — broader blast radius than a single bridge.
+
+**Relationship to ZK bridges:** ZK light client bridges are an alternative architecture where the message is verified via a cryptographic proof of chain state rather than by a trusted validator set. They achieve the same delivery guarantee without the human layer.
 
 ### Canonical rollup bridges
 - Deposit: Ethereum → L2 in ~10 minutes
 - Withdrawal: L2 → Ethereum takes **7 days** for optimistic rollups (Arbitrum, Optimism, Base) due to the fraud proof challenge window
 - ZK rollups: faster (minutes to hours) — validity proven cryptographically, no challenge window needed
+
+**Canonical vs ZK light client bridges:** A canonical rollup bridge is built into one specific L2↔L1 pair by the rollup team. A ZK light client bridge is a standalone protocol applying ZK proofs to arbitrary chain pairs. A ZK rollup's canonical bridge uses ZK proofs — but only for that one L2↔L1 corridor, not cross-chain generally.
 
 ---
 
@@ -252,6 +303,12 @@ Both a user protection feature and a trust/retention mechanism.
 | Liquidity bridge | Pool on each chain, relayer transfers between them |
 | Canonical bridge | Native L1↔L2 bridge secured by rollup proof system |
 | Fraud proof window | 7-day withdrawal delay on optimistic rollups for challenge period |
+| Wrapped/synthetic asset | Bridge-created token representing a locked asset — only redeemable via that specific bridge |
+| Bridge invariant | Tokens locked on source == wrapped tokens in circulation; broken invariant = insolvency |
+| Validator (bridge) | Off-chain human/org holding a private key that attests to cross-chain events |
+| Honeypot | Single contract holding all locked assets — high-value hack target in lock-and-mint bridges |
+| Messaging protocol | Infrastructure layer that delivers arbitrary data between chains; bridges built on top |
+| ZK light client bridge | Bridge using ZK proofs to verify source chain state — no human validator set required |
 | Cross-chain registry | Verified mapping of same token address across all chains |
 | Bridge flow | Net movement of assets between chains — signals capital rotation |
 | Unified portfolio | Aggregated view of all assets across all chains for one wallet |
