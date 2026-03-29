@@ -313,6 +313,85 @@ Every layer downstream is only as good as the indexing layer above it. Node reli
 
 ---
 
+## 7. Real-Time On-Chain Data as Alpha
+
+On-chain data is fully public — but extracting signal faster and more accurately than the market is a competitive edge. Here are three concrete examples of how real-time on-chain data generates alpha for bots and traders.
+
+### Example 1: Liquidation Cascade Prediction
+
+**The data:** On-chain lending protocols (Aave, Compound) expose every collateral position publicly — collateral amount, debt, and liquidation threshold.
+
+```
+ETH collateral position:
+  Deposited:  100 ETH ($200,000 at $2,000/ETH)
+  Borrowed:   $130,000 USDC
+  Liquidation threshold: 80% LTV → liquidated if ETH < $1,625
+
+Aggregated across all positions:
+  $40M of ETH collateral liquidated if ETH drops to $1,800
+  $120M more liquidated if ETH drops to $1,600
+```
+
+**The alpha:** Build a "liquidation heatmap" — a price ladder of forced selling at each ETH level. When ETH starts falling toward a dense cluster, a bot can:
+1. Short ETH on a perp DEX (anticipating cascaded sell pressure)
+2. Position to be the liquidator (liquidators earn a bonus for closing underwater positions)
+
+**Why on-chain only:** CEX order books don't expose pending liquidations — they show current bids/asks only. The liquidation supply is invisible until it hits the market. On-chain, it's fully transparent and queryable in advance.
+
+---
+
+### Example 2: DEX/CEX Price Arbitrage
+
+**The data:** Real-time pool reserve ratios from DEX contracts vs price feeds from centralized exchanges.
+
+```
+Binance ETH/USDC:  $2,005
+Uniswap V3 pool:   $1,998  ← $7 spread
+```
+
+**Why the spread exists:** CEX prices update in milliseconds via order book matching. On-chain pools only update when a transaction is included in a block (~12 seconds on Ethereum). Any macro price move creates a window where the DEX is mispriced.
+
+**The alpha:** Detect the spread faster than other arbitrageurs, buy on the cheap DEX side, sell on the CEX (or hedge with a perp), and capture ~$7/ETH minus gas and fees. Repeated thousands of times per day.
+
+**The infrastructure edge:** The bot that wins is the one with the lowest-latency indexer. Milliseconds matter — the first to see the spread and get their transaction included earns the profit. This is why trading firms run their own Ethereum nodes co-located near block builders rather than relying on third-party APIs.
+
+---
+
+### Example 3: Smart Wallet Tracking
+
+**The data:** Every wallet's full transaction history is public. Historical buys and sells are readable for any address.
+
+**The signal:** Identify wallets with a strong track record — e.g., a wallet that bought early into multiple tokens before they 10×, and consistently exited before the peak. Label it a "smart wallet."
+
+```
+Smart wallet 0xabc...:
+  Block 18,200,100: bought $50K of unknown token X → 10× three days later
+  Block 18,450,200: bought $80K of unknown token Y → 7× five days later
+  Block 19,100,050: NOW buying $120K of token Z
+  → bot mirrors the trade immediately
+```
+
+**The alpha:** Copy a signal wallet before the broader market notices. The window is often minutes — the bot must detect the buy in the mempool (before confirmation) or in the first block it lands, then execute immediately.
+
+**The infrastructure edge:** Requires (a) a historical database of labeled wallets, (b) a real-time transaction stream that triggers on any activity from tracked wallets, and (c) fast execution before other copy-trading bots act on the same signal.
+
+---
+
+### The Common Thread
+
+All three examples follow the same structure:
+
+```
+On-chain state (public, real-time)
+    → Pattern detected by data layer
+        → Predictive signal about future price pressure
+            → Trade executed before market fully prices it in
+```
+
+The alpha is not from secret information — everything is public. The edge is **infrastructure speed and analytical depth**: faster indexing, richer models (liquidation ladders, wallet reputation scores), and tighter feedback loops between data and execution. This is why data infrastructure is a competitive moat, not just a back-office cost.
+
+---
+
 ## Key Concepts Cheat Sheet
 
 | Term | One-line definition |
