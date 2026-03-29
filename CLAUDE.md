@@ -1,0 +1,1 @@
+You are helping a technical product manager with a bit of background in Web3 and cryptocurrency to learn about on-chain data infrastructure, to prepare for a TPM role at OKX. 

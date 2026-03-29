@@ -1,0 +1,27 @@
+At OKX, we believe that the future will be reshaped by crypto, and ultimately contribute to every individual's freedom.OKX is a leading crypto exchange, and the developer of OKX Wallet, giving millions access to crypto trading and decentralized crypto applications (dApps). OKX is also a trusted brand by hundreds of large institutions seeking access to crypto markets. We are safe and reliable, backed by our Proof of Reserves.Across our multiple offices globally, we are united by our core principles: We Before Me, Do the Right Thing, and Get Things Done. These shared values drive our culture, shape our processes, and foster a friendly, rewarding, and diverse environment for every OK-er.OKX is part of OKG, a group that brings the value of Blockchain to users around the world, through our leading products OKX, OKX Wallet, OKLink and more.About The Opportunity  As an Infra Product Manager, you will be responsible for the design, development, and lifecycle management of Web3 cross-business infrastructure products, with a focus on core components such as central data services, market data systems, labeling systems, asset category management, and algorithm platforms for Wallet, DEX and other businesses. You will collaborate closely with engineering, data, and business teams to ensure products meet the performance, security, and scalability requirements of Web3 businesses. This role demands strong product thinking, technical depth, and insight into the Web3 industry to help the team build an efficient and reliable Web3 Infra system.What You’ll Be Doing  
+* Central Data Services Management: Oversee the design of central data services for Web3 cross-business domains, including data collection, integration, storage, querying, and distribution. Ensure real-time data accuracy, security, and support for complex business needs and multi-platform environments. 
+* Market Data System Development and Optimization: Contribute to the product design and iteration of a universal market data system, delivering real-time market data (e.g., price, trading volume, liquidity metrics). Support API and front-end integration while optimizing system performance for high-concurrency scenarios. 
+* AI Trading Products: Able to design DEX AI Trading Products based on trading strategies, meme tokens, smart money signals, and leverage the latest AI technologies (AI Agent, LLM etc.) 
+* Search Engine Strategy & Improvement: Define the product roadmap for a universal Web3 search engine, enabling seamless discovery across multi-chain assets. Design and refine ranking logic. Leverage on-chain signals (e.g., TVL, transaction volume, holder growth, contract age) combined with user behavior to deliver the most relevant and high-quality results. 
+* Onchain Data and Smart Contract Analysis: Conduct research on smart contracts, understand how Dapps and protocol works, design and improve product infra performance based on the protocol underlying mechanics, make sense of the onchain data whenever necessary. 
+* Algorithm Development and Improvement: Design and iterate an algorithm to support on-chain data analytics, trading signal discovery, and risk control scenarios. Manage the integration, testing, and deployment of algorithm models to ensure efficiency and reliability of outputs. Collaborate with data analysts and data scientists to integrate machine learning or on-chain analytics models, elevating the intelligence of Infra products.    
+What We Look For In You
+* Education: Bachelor’s degree or above in Computer Science, Software Engineering, or a related field. 
+* Work Experience: 3–5 years of experience as a Product Manager. Preference for candidates with Web3 industry experience or expertise in infrastructure products (e.g., data services, labeling platforms, algorithm platforms). 
+* Technical Skills:
+   * Experience with blockchain fundamentals, including smart contracts, on-chain data analysis, consensus mechanisms, and cross-chain technologies. 
+   * Proficiency in product tools such as Figma, Jira, and Notion; knowledge of data tools like SQL, GraphQL, or BigQuery. 
+   * Proficiency in product management and system-design thinking is strongly preferred. 
+   * Proficiency in AI technology, Agent, LLM, and AI application experience is a huge plus. 
+   * Basic knowledge of algorithm platforms; familiarity with machine learning models or data analytics workflows is preferred.  
+* Soft Skills:
+   * Excellent communication and collaboration skills, with the ability to effectively bridge business and technical teams. 
+   * Strong user-oriented mindset, capable of designing products based on user pain points. 
+   * Robust problem-solving skills and the ability to make quick decisions in uncertain environments. 
+   * Fluent in English and Chinese.   
+Nice to Haves  
+* Knowledge of Web3-related products and deep technical understanding of blockchain, smart contracts, and related technologies. 
+* Experience with on-chain trading and an understanding of on-chain opportunity discovery processes. 
+* Familiarity with tokenomics and an understanding of economic incentive mechanisms in the Web3 space.  
+
+Help me prepare an interview for this role. Give background info and what might be questions.

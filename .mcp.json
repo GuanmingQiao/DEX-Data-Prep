@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "coingecko": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote@latest", "https://mcp.pro-api.coingecko.com/mcp"]
+    }
+  }
+}

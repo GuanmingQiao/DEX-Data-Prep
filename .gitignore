@@ -1,0 +1,5 @@
+# Claude Code local settings (may contain personal preferences)
+.claude/settings.local.json
+
+# Large source documentation file (available publicly at docs.coingecko.com)
+llms-full.txt
