@@ -175,11 +175,36 @@ LP tokens represent a claim on your share of the pool's reserves at withdrawal t
 
 ```
 IL example (ETH doubles from $2,000 to $4,000):
-  Deposited:  1.000 ETH + 2,000 USDC = $4,000
-  Withdrawn:  0.707 ETH + 2,828 USDC = $5,656
-  Just held:  1.000 ETH + 2,000 USDC = $6,000
-  IL = ($6,000 - $5,656) / $6,000 = 5.7%
+
+Step 1 — State at deposit
+  You deposit 1 ETH + 2,000 USDC into a pool
+  Pool state: x = 1,000 ETH, y = 2,000,000 USDC
+  k = 1,000 × 2,000,000 = 2,000,000,000
+  Your share: 0.1% of pool
+
+Step 2 — ETH price rises to $4,000 externally
+  The pool's spot price is still y/x = $2,000 — it hasn't updated yet.
+  Arbitrageurs now buy cheap ETH from the pool until the pool price
+  reaches $4,000. This drains ETH and adds USDC.
+
+Step 3 — Find new pool state using x × y = k and new price
+  New price = y / x = 4,000  →  y = 4,000x
+  Substituting into k:  x × 4,000x = 2,000,000,000
+  x² = 500,000  →  x = 707 ETH
+  y = 4,000 × 707 = 2,828,000 USDC
+
+Step 4 — Your 0.1% share at withdrawal
+  ETH:  707 × 0.1% = 0.707 ETH  (worth 0.707 × $4,000 = $2,828)
+  USDC: 2,828,000 × 0.1% = 2,828 USDC
+  Total value withdrawn = $2,828 + $2,828 = $5,656
+
+Step 5 — Compare to just holding
+  1.000 ETH × $4,000 + 2,000 USDC = $6,000
+
+  IL = ($6,000 − $5,656) / $6,000 = 5.7%
 ```
+
+The AMM sold your ETH on the way up (to satisfy arbitrageurs buying in), leaving you with only 0.707 ETH instead of 1 ETH. You still profited ($5,656 vs $4,000 deposited), but less than a holder would have.
 
 IL scale with price divergence:
 ```
