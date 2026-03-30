@@ -55,6 +55,41 @@ LPs provide liquidity only within a chosen price range (e.g., ETH between $1,800
 
 Tradeoff: higher LP returns when price stays in range; 100% impermanent loss (full exposure to one token) if price exits range entirely.
 
+### Type 5: DEX Aggregator (OKX DEX model)
+Does not operate its own liquidity pools. Instead, aggregates liquidity from hundreds of existing DEXes and routes user trades to achieve the best net execution.
+
+```
+User wants: PEPE → USDC
+
+Aggregator scans: 400+ DEX pools across 26 chains
+→ splits order across Uniswap V3, Curve, and PancakeSwap
+→ submits through private mempool (Flashbots) to block builder
+→ user receives best net price, MEV-protected
+```
+
+**OKX DEX** is this model: a pure aggregator backed by OKX exchange infrastructure, integrated directly into the OKX self-custody wallet.
+
+| Property | OKX DEX |
+|---|---|
+| Own liquidity pools | None |
+| DEXes aggregated | 400+ across 26 chains |
+| Cross-chain swaps | 17 chains, one click |
+| Routing algorithm | X-Routing (proprietary) |
+| MEV protection | Flashbots private relay |
+| Wallet integration | OKX App (passkey-secured self-custody) |
+
+**Why this model:** An aggregator's value proposition is best execution, not liquidity ownership. By routing across all available pools, it consistently outperforms any single DEX on price — especially for large trades where split routing reduces price impact. The moat is the routing algorithm and the data infrastructure powering it, not the liquidity itself.
+
+**Comparison to competitors:**
+
+| | OKX DEX | 1inch | Jupiter |
+|---|---|---|---|
+| Chain coverage | 26 chains | 9+ chains | Solana only |
+| DEXes aggregated | 400+ | 100+ | Multiple Solana DEXes |
+| MEV protection | Flashbots | Yes | Limited |
+| Wallet integration | OKX App (native) | External wallets | Solana-native |
+| Unique angle | Cross-chain breadth + OKX ecosystem | Smart routing maturity | Best UX on Solana |
+
 ---
 
 ## 3. DEX Smart Contract Architecture
@@ -100,22 +135,24 @@ What the user needs:
 
 Bridging that gap is the data infrastructure problem.
 
+For an aggregator like OKX DEX — which sources from 400+ DEXes across 26 chains — the data problem is compounded: it must maintain accurate, real-time state for every upstream pool it routes through, across chains with different block times, finality models, and event schemas. The data layer is not just supporting the product; it *is* the product.
+
 ### Five reasons data infra is non-negotiable
 
 **1. Trade execution quality**
-The router needs to know live pool reserves to compute price impact and find the optimal path. Stale data = worse execution = users get less than they should.
+The X-Routing algorithm needs live reserve data from every pool it considers. Stale data = suboptimal path = user gets worse price than a competitor's aggregator would give. For OKX DEX, this means maintaining fresh pool state across 400+ DEX sources simultaneously.
 
 **2. User safety**
-Without a token registry and trust scoring layer, users can be routed to honeypot pools or buy scam tokens with the same ticker as a legitimate asset.
+Across 26 chains, there are millions of token contracts — the vast majority scams or worthless forks. Without a verified token registry, a user searching "USDC" on an obscure chain could be routed to a honeypot. OKX DEX's token labeling system is the trust layer preventing this.
 
 **3. MEV protection**
-Detecting sandwich bots in the mempool, scoring pools by MEV risk, and recommending private routing all require a real-time data layer the contracts don't provide.
+OKX DEX integrates Flashbots private relay to shield users from sandwich attacks. This requires real-time mempool monitoring to detect active bots, and routing logic that decides when private relay is warranted vs standard submission.
 
 **4. LP economics**
-LPs need to know their fees earned, current IL, and yield vs alternatives to make rational capital allocation decisions. The contracts track balances but not P&L.
+Not directly applicable to OKX DEX (it doesn't run pools), but relevant for the upstream DEXes it routes through — pool health (TVL, fee APY, IL) feeds into the routing decision. A draining pool is deprioritised.
 
 **5. Platform trust**
-Charts, volume, TVL, and market data are how users evaluate whether a pool or token is legitimate. A DEX without analytics looks like a scam itself.
+OKX DEX's credibility depends on surfacing accurate price quotes, realistic slippage estimates, and transparent fee breakdowns before trade submission. Bad data = users getting worse execution than quoted = trust eroded.
 
 ---
 
@@ -135,6 +172,8 @@ The foundation. Reads raw data from chain nodes and makes it queryable.
 **Output:** A queryable database of all historical and live on-chain events.
 
 **Scale:** For a multi-chain DEX — indexing 20+ chains simultaneously, each at 1–12 blocks/second, each block containing hundreds of events.
+
+**OKX DEX context:** 26 chains with heterogeneous block times (Ethereum ~12s, Solana ~400ms, BSC ~3s). Each chain requires a separate indexing pipeline with chain-specific event schemas. Solana doesn't use EVM-style event logs — its program logs require a different parser entirely.
 
 ---
 
@@ -159,6 +198,8 @@ last_updated: block 19,482,301
 
 **Why freshness matters:** A router using 10-second-old reserves may compute a different output amount than the pool will actually deliver — causing the transaction to revert (slippage exceeded).
 
+**OKX DEX context:** X-Routing queries pool state from 400+ sources before computing a path. Each quote shown to the user is only valid for a few seconds. The pool state database must be updated continuously across all upstream DEXes — a stale record in a high-volume pool is enough to produce a bad quote that reverts on-chain, degrading user experience.
+
 ---
 
 ### Layer 3: Token Registry
@@ -177,6 +218,8 @@ Human-verified mapping of canonical token identities to contract addresses acros
 - Manual review for high-value assets
 
 **Without this layer:** A user searching "USDC" would see thousands of contracts named "USD Coin" — most fake, some honeypots that allow buying but not selling.
+
+**OKX DEX context:** Operating across 26 chains means maintaining a verified token registry at massive scale. The registry also feeds cross-chain deduplication — the same logical asset (USDC) has a different contract address on every chain, and the registry is what allows OKX Wallet to show "total USDC across all chains" as a single balance.
 
 ---
 
@@ -232,6 +275,8 @@ Better net price than hitting any single pool for the full amount.
 
 This is the core product of DEX aggregators (1inch, Paraswap, Jupiter on Solana).
 
+**OKX DEX context:** X-Routing is OKX DEX's proprietary routing engine. It extends the standard model with cross-chain routing — when a user swaps Token A on Chain X for Token B on Chain Y, the engine must simultaneously optimise the single-chain leg, the bridge selection, and the destination-chain leg as one unified path. This requires pool state data, bridge fee/latency data, and gas estimates across two chains at once.
+
 ---
 
 ### Layer 6: Mempool Monitoring
@@ -247,6 +292,8 @@ Indexes pending (unconfirmed) transactions — the layer before blocks.
 Block indexing is append-only and permanent. Mempool is ephemeral — transactions appear, may be replaced, and disappear when included in a block or dropped. Requires a separate streaming pipeline, not a standard database.
 
 **Output:** Real-time MEV alerts; feeds into private mempool routing recommendations.
+
+**OKX DEX context:** OKX DEX integrates Flashbots Protect to route transactions through a private relay, bypassing the public mempool. The decision of when to use private routing (adding latency) vs standard submission (faster but exposed) is itself a data product — it should be driven by real-time MEV risk signals per pool and per trade size, not applied uniformly.
 
 ---
 
@@ -400,6 +447,8 @@ The alpha is not from secret information — everything is public. The edge is *
 | AMM | Pricing mechanism inside most DEXes; sets price via reserve ratio formula |
 | Order book DEX | DEX using bids/asks instead of liquidity pools |
 | Intent / RFQ | User declares desired trade; solvers compete to fill it off-chain, settle on-chain |
+| DEX aggregator | Routes trades across 100s of DEX pools to find best execution; owns no liquidity itself |
+| X-Routing | OKX DEX's proprietary routing algorithm; optimises across 400+ DEXes and 26 chains |
 | Factory contract | Deploys and tracks all pool contracts for a DEX protocol |
 | Router contract | Finds best multi-hop path and calls pool contracts on user's behalf |
 | Quoter contract | Read-only simulation of a trade — used by UIs to preview output |
