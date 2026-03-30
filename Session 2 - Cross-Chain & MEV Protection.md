@@ -93,6 +93,39 @@ None of these move assets — they move information. Messaging protocols make th
 
 **Canonical vs ZK light client bridges:** A canonical rollup bridge is built into one specific L2↔L1 pair by the rollup team. A ZK light client bridge is a standalone protocol applying ZK proofs to arbitrary chain pairs. A ZK rollup's canonical bridge uses ZK proofs — but only for that one L2↔L1 corridor, not cross-chain generally.
 
+### How OKX bridges: a bridge aggregator
+
+OKX does not run its own bridge. Like its DEX aggregator model, it aggregates 25+ third-party bridge protocols and routes each cross-chain transfer to the best one — using the same X-Routing algorithm that routes DEX swaps.
+
+**Where each integrated bridge fits in the taxonomy:**
+
+| Bridge | Mechanism | Built on |
+|---|---|---|
+| Stargate | Liquidity pool | LayerZero (messaging protocol) |
+| Across Protocol | Intent / RFQ | UMA optimistic oracle |
+| Celer cBridge | Liquidity pool | Celer's own messaging layer |
+| X Layer canonical bridge | Lock-and-mint | zkEVM validity proof (Polygon CDK) |
+
+**X Layer** is OKX's own zkEVM L2 (built on Polygon CDK). Its canonical bridge is a lock-and-mint bridge secured by ZK validity proofs — not by a validator set. This is the one bridge OKX owns outright.
+
+**How X-Routing selects a bridge:**
+```
+User: bridge 10 ETH from Ethereum → Arbitrum
+
+X-Routing evaluates:
+  Stargate (liquidity pool):  fee $4.20, time ~2 min, ETH native ✓
+  cBridge (liquidity pool):   fee $5.10, time ~3 min, ETH native ✓
+  Across (intent-based):      fee $3.80, time ~1 min, ETH native ✓
+
+→ Selects Across: cheapest + fastest for this amount
+```
+
+Selection criteria: net cost after bridge fees + gas, transfer speed, destination asset type (native vs wrapped), and pool liquidity depth on the destination side.
+
+**Security model:** OKX does not maintain its own validator set for bridging. Each integrated bridge's security is inherited from that bridge's own trust model. OKX adds a layer of contract auditing (Hacken, SlowMist, CertiK) and an insurance fund covering eligible smart contract failures across integrated bridges.
+
+**The aggregator tradeoff:** Using 25+ bridges means no single honeypot — OKX itself doesn't hold locked assets. But users are exposed to the weakest link among the bridges selected. If X-Routing sends a transfer through a bridge that gets hacked, the user bears the loss (partly mitigated by the insurance fund). This is why bridge selection criteria increasingly include security track record, not just cost and speed.
+
 ---
 
 ## 2. Cross-Chain Data Products
@@ -309,6 +342,10 @@ Both a user protection feature and a trust/retention mechanism.
 | Honeypot | Single contract holding all locked assets — high-value hack target in lock-and-mint bridges |
 | Messaging protocol | Infrastructure layer that delivers arbitrary data between chains; bridges built on top |
 | ZK light client bridge | Bridge using ZK proofs to verify source chain state — no human validator set required |
+| Bridge aggregator | Routes transfers across 25+ bridge protocols to find best cost/speed; owns no locked assets itself |
+| X Layer | OKX's own zkEVM L2 (Polygon CDK); its canonical bridge uses ZK validity proofs |
+| Stargate | Liquidity pool bridge built on LayerZero; OKX's primary integrated bridge |
+| Across Protocol | Intent-based bridge; solvers compete to fill transfers, settled via UMA oracle |
 | Cross-chain registry | Verified mapping of same token address across all chains |
 | Bridge flow | Net movement of assets between chains — signals capital rotation |
 | Unified portfolio | Aggregated view of all assets across all chains for one wallet |
