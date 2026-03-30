@@ -10,6 +10,7 @@ Study notes on DEX and on-chain data infrastructure, prepared for an Infra Produ
 | `Session 1 - AMM & On-Chain Data Fundamentals.md` | AMM mechanics, constant product formula, slippage, trading fees, LP token economics, impermanent loss, on-chain data trust |
 | `Session 2 - Cross-Chain & MEV Protection.md` | Bridge mechanisms, cross-chain data products, sandwich attacks, MEV prevention, and how data infrastructure defends against MEV |
 | `Session 3 - DEX Architecture & Data Infrastructure.md` | DEX types (AMM, order book, RFQ/intent), smart contract architecture, why DEXes need data infra, and the eight data infrastructure layers |
+| `Session 4 - Smart Money, Signals & AI Trading Harness.md` | On-chain signal taxonomy, smart money identification, context engineering, intent recognition, drift prevention, and the full AI trading agent harness architecture |
 
 ## How this was built
 
